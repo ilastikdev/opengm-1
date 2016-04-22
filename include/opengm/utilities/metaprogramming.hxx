@@ -1107,21 +1107,25 @@ namespace opengm {
          };
       };
 
-      // metaprogramming check if T is complete type
-      template <class T>
-      struct IsCompleteType {
-         typedef char yes[1];
-         typedef char no[2];
+      namespace{
+          // metaprogramming check if T is complete type
+          template <class T, int discriminator>
+          struct IsCompleteType {
+             typedef char yes[1];
+             typedef char no[2];
 
-         template <class T1>
-         static yes& test(int(*)[sizeof(T1)]);
-         template <class T1>
-         static no&  test(...);
+             template <class T1>
+             static yes& test(int(*)[sizeof(T1)]);
+             template <class T1>
+             static no&  test(...);
 
-         enum Value{
-            value = (sizeof(test<T>(0)) == sizeof(yes))
-         };
-      };
+             enum Value{
+                value = (sizeof(test<T>(0)) == sizeof(yes))
+             };
+          };
+      }
+#define IS__COMPLETE__TYPE__(X) IsCompleteType<X,__COUNTER__>
+
       // constraint function typelist
       // metaprogramming get linear constraint function typelist
       // note: LinearConstraintFunctionTypeList might return an empty type list containing only meta::ListEnd elements.
@@ -1144,7 +1148,7 @@ namespace opengm {
          struct IsLinearConstraintFunction<FUNCTION, true> {
             typedef typename If<IsBaseOf<opengm::LinearConstraintFunctionBase<FUNCTION>, FUNCTION>::value, true_type, false_type>::type type;
          };
-         typedef IsCompleteType<opengm::LinearConstraintFunctionTraits<THEAD> > IsCompleteLinearConstraintFunction;
+         typedef IS__COMPLETE__TYPE__(opengm::LinearConstraintFunctionTraits<THEAD>) IsCompleteLinearConstraintFunction;
          // add THEAD only if it is derived from LinearConstraintBase<THEAD>
          typedef typename IsLinearConstraintFunction<THEAD, IsCompleteLinearConstraintFunction::value>::type type;
       };
